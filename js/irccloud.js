@@ -253,6 +253,16 @@ window.IRCCloud = function(){
             if(d.highlight && !d.self && self.last_seen_eid < d.eid){
               self._notify(d);
             }
+          },
+          notice: function(d){
+            if(d.highlight && !d.self && self.last_seen_eid < d.eid){
+              self._notify(d);
+            }
+          },
+          wallops: function(d){
+            if(d.highlight && !d.self && self.last_seen_eid < d.eid){
+              self._notify(d);
+            }
           }
         },
         handle: function(d){
