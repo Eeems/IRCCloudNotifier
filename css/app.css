@@ -22,10 +22,6 @@ h2 {
   transition: all 1s;
 }
 
-form {
-  display: flex;
-}
-
 input, button, code, p {
   font-size: inherit;
 }
@@ -46,4 +42,10 @@ input, button, code, p {
   border-bottom: 1rem solid #ccc;
   margin-top: -3rem;
   content: '';
+}
+section{
+  display: none;
+}
+section:target{
+  display: block;
 }
