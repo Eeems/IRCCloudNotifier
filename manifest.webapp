@@ -17,7 +17,8 @@
   "permissions": {
     "systemXHR": {
       "description": "Required to load remote content"
-    }
+    },
+    "desktop-notification": {}
   },
   "installs_allowed_from": [
     "*"
