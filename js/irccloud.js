@@ -138,6 +138,9 @@ window.IRCCloud = function(){
           'content-type': 'application/x-www-form-urlencoded',
           'Cookie': 'session='+self.session
         },
+        onerror: function(){
+          alert('Request failed');
+        },
         onload: function(){
           callback.call(this,req.response);
         }
@@ -160,6 +163,9 @@ window.IRCCloud = function(){
         headers: {
           'x-auth-formtoken': self.token,
           'Cookie': 'session='+self.session
+        },
+        onerror: function(){
+          alert('Request failed');
         },
         onload: function(){
           callback.call(this,req.response);
@@ -262,6 +268,15 @@ window.IRCCloud = function(){
           wallops: function(d){
             if(d.highlight && !d.self && self.last_seen_eid < d.eid){
               self._notify(d);
+            }
+          },
+          heartbeat_echo: function(d){
+            for(var i in d.seenEids){
+              for(var ii in d.seenEids[i]){
+                if(d.seenEids[i][ii]>self.last_seen_eid){
+                  self.last_seen_eid = d.seenEids[i][ii];
+                }
+              }
             }
           }
         },
