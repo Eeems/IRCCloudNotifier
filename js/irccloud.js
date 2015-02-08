@@ -99,6 +99,8 @@ window.IRCCloud = function(){
     },
     _notify: function(d){
       if(Notification.permission === "granted"){
+        d.chan = d.chan||'NOTICE';
+        d.from = d.from||'';
         var n = new Notification(d.chan+' '+d.from,{
           body: d.msg
         });
@@ -108,10 +110,11 @@ window.IRCCloud = function(){
             seenEids: (function(){
               var m = {};
               m[d.cid] = {};
-              m[d.cid][d.eid] = d.eid;
-              return m;
+              m[d.cid][d.bid] = d.eid;
+              return JSON.stringify(m);
             })()
           },function(){
+            self.last_seen_eid = d.eid;
             n.close();
           });
         };
@@ -192,9 +195,6 @@ window.IRCCloud = function(){
                 for(i in d){
                   if(!buffer.bid){
                     buffer.bid = d.bid;
-                  }
-                  if(d.eid){
-                    self.last_seen_eid = d.eid;
                   }
                   stream.handle(d[i]); 
                 }
