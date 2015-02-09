@@ -52,6 +52,7 @@ window.IRCCloud = function(){
       }
       xhr.onerror = function(){
         console.error(arguments);
+        console.trace();
         if(options.onerror){
           options.onerror.apply(this,arguments);
         }
@@ -176,66 +177,50 @@ window.IRCCloud = function(){
     Stream: function(){
       var stream = this;
       extend(stream,{
-        Buffer: function(url,timeout){
-          var buffer = this;
-          extend(buffer,{
-            url: url,
-            timeout: timeout,
-            _msg: ''
-          });
-          buffer.xhr = new self.Request({
-            url: self.ENDPOINT+url,
-            headers: {
-              'x-auth-formtoken': self.token,
-              'Cookie': 'session='+self.session
-            },
-            responseType: 'moz-chunked-text',
-            onprogress: function(e){
-              var d = [],i;
-              buffer._msg += e.target.response;
-            },
-            onload: function(){
-              try{
-                var d = JSON.parse(buffer._msg),i;
-                buffer._msg = '';
+        _msg: '',
+        init: function(){
+          if(stream._interval){
+            if(self.onreconnect){
+              self.onreconnect();
+            }
+            clearInterval(stream._interval);
+            stream._interval = undefined;
+          }
+          if(navigator.onLine){
+            var data = {};
+            if(stream.streamid){
+              data.streamid = stream.streamid;
+            }
+            if(stream.since_id){
+              data.since_id = stream.since_id;
+            }
+            stream.xhr = new self.Request({
+              url: self.ENDPOINT+'/chat/stream?'+self._encode(data),
+              headers: {
+                'x-auth-formtoken': self.token,
+                'Cookie': 'session='+self.session
+              },
+              responseType: 'moz-chunked-text',
+              onerror: function(){
+                stream.init();
+              },
+              ontimeout: function(){
+                stream.init();
+              },
+              onprogress: function(e){
+                var d = [],i;
+                e.target.response.trim().split("\n").forEach(function(v,i,a){
+                  d.push(JSON.parse(v));
+                });
                 for(i in d){
-                  if(!buffer.bid){
-                    buffer.bid = d.bid;
-                  }
-                  stream.handle(d[i]); 
+                 stream.handle(d[i]); 
                 }
-              }catch(e){}
-            }
-          });
-          return buffer;
-        },
-        start: function(){
-          var data = {};
-          if(stream.streamid){
-            data.streamid = stream.streamid;
-          }
-          if(stream.since_id){
-            data.since_id = stream.since_id;
-          }
-          stream.xhr = new self.Request({
-            url: self.ENDPOINT+'/chat/stream?'+self._encode(data),
-            headers: {
-              'x-auth-formtoken': self.token,
-              'Cookie': 'session='+self.session
-            },
-            responseType: 'moz-chunked-text',
-            onprogress: function(e){
-              var d = [],i;
-              e.target.response.trim().split("\n").forEach(function(v,i,a){
-                d.push(JSON.parse(v));
-              });
-              for(i in d){
-               stream.handle(d[i]); 
               }
-            }
-          });
+            });
+          }else{
+            // handle being offline
+          }
         },
-        _buffers: [],
         _handles: {
           header: function(d){
             stream.streamid = d.streamid;
@@ -245,7 +230,56 @@ window.IRCCloud = function(){
             
           },
           oob_include: function(d){
-            stream._buffers.push(new stream.Buffer(d.url,d.timeout));
+            if(self.onconnect){
+              self.onconnect();
+            }
+            stream._interval = setInterval(function(){
+              if((stream.idle_interval+stream.last_recieved)<+new Date){
+                stream.init();
+              }
+            },10);
+            var fn0 = function(){
+              window.removeEventListener('online',fn0);
+              if(self.ononline){
+                self.ononline();
+              }
+              stream.init();
+            },
+                fn1 = function(){
+                  window.removeEventListener('offline',fn1);
+                  if(self.onoffline){
+                    self.onoffline();
+                  }
+                };
+            window.addEventListener('online',fn0);
+            window.addEventListener('offline',fn1);
+            stream.xhr = new self.Request({
+              url: self.ENDPOINT+d.url,
+              headers: {
+                'x-auth-formtoken': self.token,
+                'Cookie': 'session='+self.session
+              },
+              responseType: 'moz-chunked-text',
+              onprogress: function(e){
+                var d = [],i;
+                stream._msg += e.target.response;
+              },
+              onload: function(){
+                try{
+                  var d = JSON.parse(stream._msg),i;
+                  stream._msg = '';
+                  for(i in d){
+                    stream.handle(d[i]); 
+                  }
+                }catch(e){}
+              },
+              onerror: function(){
+                stream.init();
+              },
+              ontimeout: function(){
+                stream.init();
+              }
+            });
           },
           makebuffer: function(d){
             self.last_seen_eid = d.last_seen_eid;
@@ -282,13 +316,14 @@ window.IRCCloud = function(){
         },
         handle: function(d){
           console.log(d.type);
+          stream.last_recieved = +new Date;
           stream.since_id = d.eid;
           if(stream._handles[d.type]){
             stream._handles[d.type](d);
           }
         }
       });
-      stream.start();
+      stream.init();
       return stream;
     },
     login: function(user,pass,callback){
