@@ -93,30 +93,25 @@ window.addEventListener('DOMContentLoaded', function() {
         });
       };
     };
-    setInterval(function(){
-      var req = navigator.mozAlarms.getAll();
-      req.onsuccess = function(){
-        var latest = new Date(),
-            now = latest
-        this.result.forEach(function(alarm){
-          if(alarm.date>latest){
-            latest = alarm.date;
-          }
-          if(alarm.date<now){
-            navigator.mozAlarms.remove(alarm.id);
-            var d = new Date();
-            d.setMinutes(now.getMinutes()+1);
-            navigator.mozAlarms.add(d,"honorTimezone");
-          }
-        });
-        if(this.result.length<10){
-          var d = new Date();
-          for(var i=1;i<11;i++){
-            d.setMinutes(now.getMinutes()+i);
-            navigator.mozAlarms.add(d,"honorTimezone");
-          }
-        }
-      };
-     },10000);
+    var req = navigator.mozAlarms.getAll();
+    req.onsuccess = function(){
+      if(this.result.length===0){
+        var d = new Date();
+        d.setMinutes(d.getMinutes()+1);
+        navigator.mozAlarms.add(d,"honorTimezone");
+      }
+    };
+    navigator.mozSetMessageHandler('alarm',function(alarm){
+      var d = new Date();
+      d.setMinutes(d.getMinutes()+1);
+      navigator.mozAlarms.add(d,"honorTimezone");
+      navigator.mozAlarms.remove(alarm.id);
+    });
+    navigator.mozSetMessageHandler('notification',function(notification){
+      var n = $('#eid_'+notification.tag);
+      if(n){
+        n.parentNode.style.background = 'red';
+      }
+    });
   });
 });

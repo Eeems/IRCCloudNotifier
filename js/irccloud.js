@@ -180,7 +180,9 @@
             n;
         if(Notification.permission === "granted"){
           n = new Notification(h.title,{
-            body: h.body
+            body: h.body,
+            icon: 'img/icons/icon48x48.png',
+            tag: h.eid
           });
           n.onclick = function(){
             n.close();
