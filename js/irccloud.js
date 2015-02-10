@@ -16,6 +16,7 @@ window.IRCCloud = function(){
   var self = this;
   extend(self,{
     debug: false,
+    events: true,
     ENDPOINT: 'https://www.irccloud.com',
     Request: function(options){
       if(!options.url){
@@ -94,6 +95,7 @@ window.IRCCloud = function(){
       xhr.send(options.data);
       return self;
     },
+    _highlights: [],
     _encode: function(d){
       var data = [],
           i;
@@ -105,13 +107,34 @@ window.IRCCloud = function(){
       return data.join('&');
     },
     _notify: function(d){
+      for(var i in self._highlights){
+        if(self._highlights[i].eid === d.eid){
+          return;
+        }
+      }
+      var h = {
+            eid: d.eid,
+            notification: {
+              onclick: function(){}
+            },
+            click: function(){
+              return this.notification.onclick.call(this.notification);
+            },
+            eid: d.eid,
+            body: d.msg,
+            title: (d.chan||'NOTICE')+' '+(d.from||'')
+          },
+          n;
       if(Notification.permission === "granted"){
-        d.chan = d.chan||'NOTICE';
-        d.from = d.from||'';
-        var n = new Notification(d.chan+' '+d.from,{
-          body: d.msg
+        n = new Notification(h.title,{
+          body: h.body
         });
         n.onclick = function(){
+          for(var i in self._highlights){
+            if(self._highlights[i].eid === d.eid){
+              self._highlights.splice(i,1);
+            }
+          }
           self.post('heartbeat',{
             selectedBuffer: d.bid,
             seenEids: (function(){
@@ -121,12 +144,16 @@ window.IRCCloud = function(){
               return JSON.stringify(m);
             })()
           },function(){
-            self.last_seen_eid = d.eid;
             n.close();
           });
         };
+        h.notification = n;
       }else{
-        alert(d.msg);
+        alert(h.body);
+      }
+      self._highlights.push(h);
+      if(self.onnotify){
+        self.onnotify(h);
       }
     },
     post: function(name,data,callback,onerror){
@@ -182,13 +209,36 @@ window.IRCCloud = function(){
       var stream = this;
       extend(stream,{
         _msg: '',
-        init: function(){
+        reconnect: function(){
+          if(self.events){
+          console.info('Stream Reconnect');
+        }
+          if(self.ondisconnect){
+            self.ondisconnect();
+          }
+          stream.init();
+        },
+        stop: function(){
+          if(self.events){
+            console.info('Stream Stop');
+          }
           if(stream._interval){
-            if(self.onreconnect){
-              self.onreconnect();
-            }
             clearInterval(stream._interval);
             stream._interval = undefined;
+          }
+          if(stream.xhr){
+            try{
+              stream.xhr.abort();
+            }catch(e){}
+          }
+        },
+        init: function(){
+          stream.stop();
+          if(self.onreconnect){
+            self.onreconnect();
+          }
+          if(self.events){
+            console.info('Stream Init');
           }
           if(navigator.onLine){
             var data = {};
@@ -198,11 +248,6 @@ window.IRCCloud = function(){
             if(stream.since_id){
               data.since_id = stream.since_id;
             }
-            if(stream.xhr){
-              try{
-                 stream.xhr.abort();
-               }catch(e){}
-            }
             stream.xhr = new self.Request({
               url: self.ENDPOINT+'/chat/stream?'+self._encode(data),
               headers: {
@@ -210,12 +255,8 @@ window.IRCCloud = function(){
                 'Cookie': 'session='+self.session
               },
               responseType: 'moz-chunked-text',
-              onerror: function(){
-                stream.init();
-              },
-              ontimeout: function(){
-                stream.init();
-              },
+              onerror: stream.reconnect,
+              ontimeout: stream.reconnect,
               onprogress: function(e){
                 var d = [],i;
                 e.target.response.trim().split("\n").forEach(function(v,i,a){
@@ -234,9 +275,24 @@ window.IRCCloud = function(){
           header: function(d){
             stream.streamid = d.streamid;
             stream.idle_interval = d.idle_interval;
+            if(self.events){
+              console.info('Header');
+            }
           },
           stat_user: function(d){
-            
+            self.user = {
+              id: d.id,
+              name: d.name,
+              email: d.email,
+              verified: d.verified,
+              admin: d.admin
+            };
+            if(self.events){
+              console.info('Stat User');
+            }
+            if(self.onstatuser){
+              self.onstatuser();
+            }
           },
           oob_include: function(d){
             if(self.onconnect){
@@ -244,18 +300,35 @@ window.IRCCloud = function(){
             }
             stream._interval = setInterval(function(){
               if((stream.idle_interval+stream.last_recieved)<+new Date){
-                stream.init();
+                if(self.events){
+                  console.log('Idle Interval Timeout');
+                }
+                stream.reconnect();
               }
             },10);
             var fn0 = function(){
-              window.removeEventListener('online',fn0);
-              if(self.ononline){
-                self.ononline();
-              }
-              stream.init();
-            },
+                  if(self.events){
+                    console.info('Online');
+                  }
+                  window.removeEventListener('online',fn0);
+                  if(self.ononline){
+                    self.ononline();
+                  }
+                  stream.init();
+                },
                 fn1 = function(){
+                  if(self.events){
+                    console.info('Offline');
+                  }
                   window.removeEventListener('offline',fn1);
+                  if(stream.xhr){
+                    try{
+                      stream.xhr.abort();
+                    }catch(e){}
+                  }
+                  if(self.ondisconnect){
+                    self.ondisconnect();
+                  }
                   if(self.onoffline){
                     self.onoffline();
                   }
@@ -287,12 +360,8 @@ window.IRCCloud = function(){
                   }
                 }catch(e){}
               },
-              onerror: function(){
-                stream.init();
-              },
-              ontimeout: function(){
-                stream.init();
-              }
+              onerror: stream.reconnect,
+              ontimeout: stream.reconnect
             });
           },
           makebuffer: function(d){
@@ -342,7 +411,22 @@ window.IRCCloud = function(){
       stream.init();
       return stream;
     },
+    setSession: function(session){
+      if(self.events){
+        console.info('setSession');
+      }
+      self.session = session;
+      document.cookie = 'session='+session;
+      if(!self.stream){
+        self.stream = new self.Stream();
+      }else{
+        self.stream.reconnect();
+      }
+    },
     login: function(user,pass,callback,onerror){
+      if(self.events){
+        console.info('Login');
+      }
       callback = callback===undefined?function(){}:callback;
       self.rpc['auth-formtoken'](function(d){
         self.token = d.token;
@@ -351,11 +435,8 @@ window.IRCCloud = function(){
           email: user,
           password: pass
         },function(d){
-          self.session = d.session;
-          self.uid = d.uid;
-          document.cookie = 'session='+d.session;
+          self.setSession(d.session);
           callback(d);
-          self._stream = new self.Stream();
         },onerror);
       });
     },

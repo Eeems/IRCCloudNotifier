@@ -1,31 +1,62 @@
+window.$ = function(){
+  return document.querySelector.apply(document,arguments);
+};
 window.addEventListener('DOMContentLoaded', function() {
   'use strict';
   location.hash = 'tab-login';
   navigator.mozL10n.once(function(){
     window.irc = new IRCCloud();
-    window.$ = function(){
-      return document.querySelector.apply(document,arguments);
-    };
+    var saveSession = function(){
+          localStorage.setItem('session',JSON.stringify({
+            session: irc.session,
+            user: irc.user
+          }));
+        },
+        updateUser = function(){
+          $('#user-name').textContent = irc.user.name;
+          $('#user-email').textContent = irc.user.email;
+        };
+    if(localStorage.getItem('session')!==null){
+      var s = JSON.parse(localStorage.getItem('session'));
+      irc.user = s.user;
+      irc.setSession(s.session);
+      updateUser();
+      location.hash = 'tab-display';
+    }
+    $('#network-status').textContent = navigator.onLine?"Online":"Offline";
+    $('#reconnect-status').style.display = 'none';
     irc.onreconnect = function(){
-      var p = document.createElement('p');
-      p.textContent = 'Reconnecting';
-      $('#tab-display').appendChild(p);
+      $('#reconnect-status').style.display = 'block';
     };
     irc.onoffline = function(){
-      var p = document.createElement('p');
-      p.textContent = 'Offline';
-      $('#tab-display').appendChild(p);
+      $('#network-status').textContent = 'Offline';
     };
     irc.ononline = function(){
-      var p = document.createElement('p');
-      p.textContent = 'Online';
-      $('#tab-display').appendChild(p);
+      $('#network-status').textContent = 'Online';
     };
     irc.onconnect = function(){
-      var p = document.createElement('p');
-      p.textContent = 'Connected';
-      $('#tab-display').appendChild(p);
+      $('#reconnect-status').style.display = 'none';
+      $('#status').textContent = 'Connected';
     };
+    irc.ondisconnect = function(){
+      $('#status').textContent = 'Disconnected';
+    };
+    irc.onnotify = function(h){
+      var d = document.createElement('div'),
+          st = document.createElement('strong'),
+          sp = document.createElement('span');
+      d.onclick = function(){
+        h.click();
+        d.remove();
+      };
+      d.id = 'eid_'+h.eid;
+      st.textContent = h.title;
+      sp.textContent = h.body;
+      d.appendChild(st);
+      d.appendChild(sp);
+      $('#notifications').appendChild(d);
+    };
+    irc.onstatuser = saveSession;
     $('#login-form').onsubmit = function(){
       $('#login').click();
       return false;
@@ -38,10 +69,10 @@ window.addEventListener('DOMContentLoaded', function() {
           $('#login').disabled = false;
           alert('Login Failed: '+d.message);
         }else{
-          var p = document.createElement('p');
-          p.textContent = 'Logged in!';
-          $('#tab-display').appendChild(p);
+          $('#status').textContent = 'Logged in!';
           location.hash = 'tab-display';
+          saveSession();
+          updateUser();
         }
       },function(e){
         alert("Login Failed: "+e);
@@ -50,8 +81,12 @@ window.addEventListener('DOMContentLoaded', function() {
       });
     };
     $('#reconnect').onclick = function(){
-      // API Break
-      irc._stream.init();
+      irc.stream.reconnect();
+    };
+    $('#logout').onclick = function(){
+      localStorage.removeItem('session');
+      location.hash = 'tab-login';
+      
     };
   });
 });
