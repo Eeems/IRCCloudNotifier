@@ -182,7 +182,9 @@
           n = new Notification(h.title,{
             body: h.body
           });
-          h.onclick = function(){};
+          n.onclick = function(){
+            n.close();
+          };
           h.notification = n;
         }else{
           alert(h.body);
