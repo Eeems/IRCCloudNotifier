@@ -1,6 +1,6 @@
 {
   "version": "0.2.0",
-  "name": "IRCCloudNotifier",
+  "name": "IRCCNotify",
   "description": "Demonstrates how to use permissions to load remote content",
   "launch_path": "/index.html",
   "icons": {
@@ -18,7 +18,9 @@
     "systemXHR": {
       "description": "Required to load remote content"
     },
-    "desktop-notification": {},
+    "desktop-notification": {
+      "description": "Used to show notifications"
+    },
     "alarms":{
       "description": "Used to keep the application from closing"
     }
