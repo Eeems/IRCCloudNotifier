@@ -109,9 +109,9 @@ window.addEventListener('DOMContentLoaded', function() {
             navigator.mozAlarms.add(d,"honorTimezone");
           }
         });
-        if(this.result.length<5){
+        if(this.result.length<10){
           var d = new Date();
-          for(var i=1;i<6;i++){
+          for(var i=1;i<11;i++){
             d.setMinutes(now.getMinutes()+i);
             navigator.mozAlarms.add(d,"honorTimezone");
           }
