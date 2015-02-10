@@ -50,6 +50,7 @@
     extend(self,{
       debug: false,
       events: false,
+      last_seen_eid: 0,
       ENDPOINT: 'https://www.irccloud.com',
       Request: function(options){
         if(!options.url){
@@ -379,7 +380,9 @@
               });
             },
             makebuffer: function(d){
-              self.last_seen_eid = d.last_seen_eid;
+              if(self.last_seen_eid<d.last_seen_eid){
+                self.last_seen_eid = d.last_seen_eid;
+              }
             },
             buffer_msg: function(d){
               if(d.highlight && !d.self && self.last_seen_eid < d.eid){
