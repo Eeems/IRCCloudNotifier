@@ -86,7 +86,37 @@ window.addEventListener('DOMContentLoaded', function() {
     $('#logout').onclick = function(){
       localStorage.removeItem('session');
       location.hash = 'tab-login';
-      
+      var req = navigator.mozAlarms.getAll();
+      req.onsuccess = function(){
+        this.result.forEach(function(alarm){
+          navigator.mozAlarms.remove(alarm.id);
+        });
+      };
     };
+    setInterval(function(){
+      var req = navigator.mozAlarms.getAll();
+      req.onsuccess = function(){
+        var latest = new Date(),
+            now = latest
+        this.result.forEach(function(alarm){
+          if(alarm.date>latest){
+            latest = alarm.date;
+          }
+          if(alarm.date<now){
+            navigator.mozAlarms.remove(alarm.id);
+            var d = new Date();
+            d.setMinutes(now.getMinutes()+1);
+            navigator.mozAlarms.add(d,"honorTimezone");
+          }
+        });
+        if(this.result.length<5){
+          var d = new Date();
+          for(var i=1;i<6;i++){
+            d.setMinutes(now.getMinutes()+i);
+            navigator.mozAlarms.add(d,"honorTimezone");
+          }
+        }
+      };
+     },10000);
   });
 });

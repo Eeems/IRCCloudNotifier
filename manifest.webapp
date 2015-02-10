@@ -18,21 +18,18 @@
     "systemXHR": {
       "description": "Required to load remote content"
     },
-    "desktop-notification": {}
+    "desktop-notification": {},
+    "alarms":{
+      "description": "Used to keep the application from closing"
+    }
   },
   "installs_allowed_from": [
     "*"
   ],
-  "locales": {
-    "es": {
-      "name": "Aplicación privilegiada",
-      "description": "Demuestra cómo utilizar permisos para cargar contenido remoto",
-      "permissions": {
-        "systemXHR": {
-          "description": "Requerido para cargar contenido remoto"
-        }
-      }
+  "default_locale": "en",
+  "messages": [
+    {
+      "alarm": "/index.html"
     }
-  },
-  "default_locale": "en"
+  ]
 }
