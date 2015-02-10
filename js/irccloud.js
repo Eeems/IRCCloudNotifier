@@ -185,6 +185,9 @@
             tag: h.eid
           });
           n.onclick = function(){
+            if(self.onclick){
+              self.onclick.call(n,arguments);
+            }
             n.close();
           };
           h.notification = n;

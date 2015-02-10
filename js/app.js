@@ -56,6 +56,11 @@ window.addEventListener('DOMContentLoaded', function() {
       d.appendChild(sp);
       $('#notifications').appendChild(d);
     };
+    irc.onclick = function(){
+      navigator.mozApps.getSelf().onsuccess = function(event) {
+        event.target.result.launch();
+      }
+    };
     irc.onstatuser = saveSession;
     $('#login-form').onsubmit = function(){
       $('#login').click();
@@ -112,6 +117,7 @@ window.addEventListener('DOMContentLoaded', function() {
       if(n){
         n.parentNode.style.background = 'red';
       }
+      irc.onclick.call(notification);
     });
   });
 });
