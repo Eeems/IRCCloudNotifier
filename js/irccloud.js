@@ -15,6 +15,7 @@ Notification.requestPermission(function (permission) {
 window.IRCCloud = function(){
   var self = this;
   extend(self,{
+    debug: false,
     ENDPOINT: 'https://www.irccloud.com',
     Request: function(options){
       if(!options.url){
@@ -81,6 +82,11 @@ window.IRCCloud = function(){
           return xhr.getResponseHeader(name); 
         },
         abort: function(){
+          delete xhr.ontimeout;
+          delete xhr.onerror;
+          delete xhr.onreadystatechange;
+          delete xhr.onload;
+          xhr.removeEventListener('progress',options.onprogress);
           return xhr.abort();
         },
         response: null
@@ -123,8 +129,9 @@ window.IRCCloud = function(){
         alert(d.msg);
       }
     },
-    post: function(name,data,callback){
+    post: function(name,data,callback,onerror){
       callback = callback===undefined?function(){}:callback;
+      onerror = onerror===undefined?function(){}:onerror;
       data = data===undefined?{}:data;
       if(self.session){
         data.session = self.session;
@@ -139,21 +146,20 @@ window.IRCCloud = function(){
           'content-type': 'application/x-www-form-urlencoded',
           'Cookie': 'session='+self.session
         },
-        onerror: function(){
-          alert('Request failed');
-        },
+        onerror: onerror,
         onload: function(){
           callback.call(this,req.response);
         }
       });
       return self;
     },
-    get: function(name,data,callback){
+    get: function(name,data,callback,onerror){
       if(typeof data == 'function'){
         callback = data;
         data = undefined;
       }
       callback = callback===undefined?function(){}:callback;
+      onerror = onerror===undefined?function(){}:onerror;
       data = data === undefined?{}:data;
       if(self.session){
         data.session = self.session;
@@ -165,9 +171,7 @@ window.IRCCloud = function(){
           'x-auth-formtoken': self.token,
           'Cookie': 'session='+self.session
         },
-        onerror: function(){
-          alert('Request failed');
-        },
+        onerror: onerror,
         onload: function(){
           callback.call(this,req.response);
         }
@@ -193,6 +197,11 @@ window.IRCCloud = function(){
             }
             if(stream.since_id){
               data.since_id = stream.since_id;
+            }
+            if(stream.xhr){
+              try{
+                 stream.xhr.abort();
+               }catch(e){}
             }
             stream.xhr = new self.Request({
               url: self.ENDPOINT+'/chat/stream?'+self._encode(data),
@@ -253,6 +262,11 @@ window.IRCCloud = function(){
                 };
             window.addEventListener('online',fn0);
             window.addEventListener('offline',fn1);
+            if(stream.xhr){
+              try{
+                 stream.xhr.abort();
+               }catch(e){}
+            }
             stream.xhr = new self.Request({
               url: self.ENDPOINT+d.url,
               headers: {
@@ -315,7 +329,9 @@ window.IRCCloud = function(){
           }
         },
         handle: function(d){
-          console.log(d.type);
+          if(self.debug){
+            console.log(d.type);
+          }
           stream.last_recieved = +new Date;
           stream.since_id = d.eid;
           if(stream._handles[d.type]){
@@ -326,7 +342,7 @@ window.IRCCloud = function(){
       stream.init();
       return stream;
     },
-    login: function(user,pass,callback){
+    login: function(user,pass,callback,onerror){
       callback = callback===undefined?function(){}:callback;
       self.rpc['auth-formtoken'](function(d){
         self.token = d.token;
@@ -340,7 +356,7 @@ window.IRCCloud = function(){
           document.cookie = 'session='+d.session;
           callback(d);
           self._stream = new self.Stream();
-        });
+        },onerror);
       });
     },
     rpc: (function(){
@@ -388,19 +404,19 @@ window.IRCCloud = function(){
         rpc = {};
       for(i in methods.get){
         (function(n){
-          rpc[n] = function(callback){
-            return self.get(n,callback);
+          rpc[n] = function(callback,onerror){
+            return self.get(n,callback,onerror);
           };
         })(methods.get[i]);
       }
       for(i in methods.post){
         (function(n){
-          rpc[n] = function(data,callback){
+          rpc[n] = function(data,callback,onerror){
             if(typeof data == 'function' && callback === undefined){
               callback = data;
               data = undefined;
             }
-            return self.post(n,data,callback);
+            return self.post(n,data,callback,onerror);
           };
         })(methods.post[i]);
       }

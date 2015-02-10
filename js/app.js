@@ -38,9 +38,20 @@ window.addEventListener('DOMContentLoaded', function() {
           $('#login').disabled = false;
           alert('Login Failed: '+d.message);
         }else{
+          var p = document.createElement('p');
+          p.textContent = 'Logged in!';
+          $('#tab-display').appendChild(p);
           location.hash = 'tab-display';
         }
+      },function(e){
+        alert("Login Failed: "+e);
+        console.error(e);
+        $('#login').disabled = false;
       });
+    };
+    $('#reconnect').onclick = function(){
+      // API Break
+      irc._stream.init();
     };
   });
 });
