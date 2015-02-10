@@ -10,8 +10,8 @@
     "128": "/img/icons/icon128x128.png"
   },
   "developer": {
-    "name": "Your name",
-    "url": "http://example.com"
+    "name": "Nathaniel van Diepen",
+    "url": "http://eeems.me"
   },
   "type": "privileged",
   "permissions": {
@@ -28,9 +28,7 @@
   ],
   "default_locale": "en",
   "messages": [
-    {
-      "alarm": "/index.html",
-      "notification": "/index.html"
-    }
+    {"alarm": "/index.html"},
+    {"notification": "/index.html"}
   ]
 }
