@@ -147,39 +147,41 @@
         }
         var h = {
               eid: d.eid,
+              bid: d.bid,
+              cid: d.cid,
+              body: d.msg,
+              title: (d.chan||'NOTICE')+' '+(d.from||''),
               notification: {
                 onclick: function(){}
               },
               click: function(){
                 return this.notification.onclick.call(this.notification);
               },
-              eid: d.eid,
-              body: d.msg,
-              title: (d.chan||'NOTICE')+' '+(d.from||'')
+              clear: function(){
+                var t = this;
+                for(var i in self._highlights){
+                  if(self._highlights[i].eid === t.eid){
+                    self._highlights.splice(i,1);
+                  }
+                }
+                self.post('heartbeat',{
+                  selectedBuffer: d.bid,
+                  seenEids: (function(){
+                    var m = {};
+                    m[t.cid] = {};
+                    m[t.cid][t.bid] = t.eid;
+                    return JSON.stringify(m);
+                  })()
+                },function(){
+                  t.notification.close();
+                });
+              }
             },
             n;
         if(Notification.permission === "granted"){
           n = new Notification(h.title,{
             body: h.body
           });
-          n.onclick = function(){
-            for(var i in self._highlights){
-              if(self._highlights[i].eid === d.eid){
-                self._highlights.splice(i,1);
-              }
-            }
-            self.post('heartbeat',{
-              selectedBuffer: d.bid,
-              seenEids: (function(){
-                var m = {};
-                m[d.cid] = {};
-                m[d.cid][d.bid] = d.eid;
-                return JSON.stringify(m);
-              })()
-            },function(){
-              n.close();
-            });
-          };
           h.notification = n;
         }else{
           alert(h.body);

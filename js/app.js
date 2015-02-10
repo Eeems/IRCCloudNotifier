@@ -46,7 +46,7 @@ window.addEventListener('DOMContentLoaded', function() {
           st = document.createElement('strong'),
           sp = document.createElement('span');
       d.onclick = function(){
-        h.click();
+        h.clear();
         d.remove();
       };
       d.id = 'eid_'+h.eid;

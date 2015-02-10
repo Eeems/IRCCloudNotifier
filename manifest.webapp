@@ -29,7 +29,8 @@
   "default_locale": "en",
   "messages": [
     {
-      "alarm": "/index.html"
+      "alarm": "/index.html",
+      "notification": "/index.html"
     }
   ]
 }
