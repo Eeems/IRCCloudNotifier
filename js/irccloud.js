@@ -130,6 +130,20 @@
         return self;
       },
       _highlights: [],
+      _connections: [],
+      _get_connection_id: function(cid){
+        for(var i in self._connections){
+          if(self._connections[i].cid == cid){
+            return i;
+          }
+        }
+      },
+      _get_connection: function(cid){
+        var i = self._get_connection_id(cid);
+        if(i){
+          return self._connections[i];
+        }
+      },
       _encode: function(d){
         var data = [],
             i;
@@ -380,8 +394,41 @@
               });
             },
             makebuffer: function(d){
+              if(self._get_connection_id(d.cid)){
+                self._get_connection(d.cid).buffers[d.bid] = d;
+              }
               if(self.last_seen_eid<d.last_seen_eid){
                 self.last_seen_eid = d.last_seen_eid;
+              }
+              if(self.onbuffer){
+                self.onbuffer();
+              }
+            },
+            delete_buffer: function(d){
+              if(self._get_connection_id(d.cid)){
+                self._get_connection(d.cid).buffers.splice(d.bid,1);
+              }
+              if(self.onbuffer){
+                self.onbuffer();
+              }
+            },
+            makeserver: function(d){
+              if(!self._get_connection_id(d.cid)){
+                d.buffers = [];
+                self._connections.push(d);
+              }else{
+                d.buffers = self._get_connection(d.cid).buffers;
+                self._connections[self._get_connection_id(d.cid)] = d;
+              }
+              if(self.onserver){
+                self.onserver();
+              }
+            },
+            server_details_changed: function(d){
+              d.buffers = [];
+              self._connections[d.cid] = d;
+              if(self.onserver){
+                self.onserver();
               }
             },
             buffer_msg: function(d){

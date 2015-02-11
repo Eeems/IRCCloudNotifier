@@ -85,6 +85,9 @@ window.addEventListener('DOMContentLoaded', function() {
         $('#login').disabled = false;
       });
     };
+    irc.onserver = function(){
+      $('#info-connections').textContent = irc._connections.length;
+    };
     $('#reconnect').onclick = function(){
       irc.stream.reconnect();
     };
