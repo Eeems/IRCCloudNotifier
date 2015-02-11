@@ -18,8 +18,14 @@ window.addEventListener('DOMContentLoaded', function() {
           }));
         },
         updateUser = function(){
-          $('#user-name').textContent = irc.user.name;
-          $('#user-email').textContent = irc.user.email;
+          if(irc.user){
+            if(irc.user.name){
+              $('#user-name').textContent = irc.user.name;
+            }
+            if(irc.user.email){
+              $('#user-email').textContent = irc.user.email;
+            }
+          }
         };
     if(localStorage.getItem('session')!==null){
       var s = JSON.parse(localStorage.getItem('session'));
@@ -30,6 +36,9 @@ window.addEventListener('DOMContentLoaded', function() {
     }
     $('#network-status').textContent = navigator.onLine?"Online":"Offline";
     $('#reconnect-status').style.display = 'none';
+    irc.onerror = function(e){
+      alert(e);
+    };
     irc.onreconnect = function(){
       $('#reconnect-status').style.display = 'block';
     };
