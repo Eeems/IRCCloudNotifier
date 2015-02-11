@@ -15,26 +15,35 @@
         <section id="tab-login">
             <form id="login-form">
                 <div>
-                    <label for="email">Email: </label>
                     <input name="email" placeholder="email" id="email" />
-                </div>
-                <div>
-                    <label for="password">Password: </label>
                     <input name="password" type="password" placeholder="password" id="password" />
+                    <button id="login" class="submit">
+                        <span>Login</span>
+                    </button>
                 </div>
-                <button id="login">Login</button>
             </form>
+            <div class="intro">
+                <p>
+                    Get notified when someone says something on IRC without the bloat you'd get on IRCCloud.com
+                </p>
+            </div>
         </section>
         <section id="tab-display">
             <div id="user">
-                <button id="reconnect">Reconnect</button>
-                <button id="logout">Logout</button>
+                <div>
+                    <button id="logout" class="delete">
+                        <span>Logout</span>
+                    </button>
+                    <button id="reconnect">
+                        <span>Reconnect</span>
+                    </button>
+                </div>
                 <div>
                    <span id="user-name"></span>
                    <span id="user-email"></span>
                 </div>
             </div>
-            <div id="network">
+            <div id="network" class="flex marginL">
                 <div id="network-status"></div>
                 <div id="status"></div>
                 <div id="reconnect-status">Reconnecting...</div>

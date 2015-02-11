@@ -4,6 +4,11 @@ window.$ = function(){
 window.addEventListener('DOMContentLoaded', function() {
   'use strict';
   location.hash = 'tab-login';
+  var app;
+  navigator.mozApps.getSelf().onsuccess = function(event) {
+    app = event.target.result;
+    app.checkForUpdate();
+  };
   navigator.mozL10n.once(function(){
     window.irc = new IRCCloud();
     var saveSession = function(){
@@ -50,6 +55,7 @@ window.addEventListener('DOMContentLoaded', function() {
         d.remove();
       };
       d.id = 'eid_'+h.eid;
+      d.className = 'notification';
       st.textContent = h.title;
       sp.textContent = h.body;
       d.appendChild(st);
@@ -57,11 +63,12 @@ window.addEventListener('DOMContentLoaded', function() {
       $('#notifications').appendChild(d);
     };
     irc.onclick = function(){
-      navigator.mozApps.getSelf().onsuccess = function(event) {
-        event.target.result.launch();
-      }
+      app.launch();
     };
-    irc.onstatuser = saveSession;
+    irc.onstatuser = function(){
+      saveSession();
+      updateUser();
+    };
     $('#login-form').onsubmit = function(){
       $('#login').click();
       return false;
@@ -94,6 +101,8 @@ window.addEventListener('DOMContentLoaded', function() {
     $('#logout').onclick = function(){
       localStorage.removeItem('session');
       location.hash = 'tab-login';
+      irc.stream.stop();
+      irc.user = {};
       var req = navigator.mozAlarms.getAll();
       req.onsuccess = function(){
         this.result.forEach(function(alarm){
