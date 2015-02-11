@@ -102,7 +102,14 @@ window.addEventListener('DOMContentLoaded', function() {
       });
     };
     irc.onserver = function(){
-      $('#info-connections').textContent = irc._connections.length;
+      $('#info-connections').textContent = irc.connections.length;
+    };
+    irc.onbuffer = function(){
+      var c = 0;
+      irc.connections.forEach(function(con){
+        c += con.buffers.length;
+      });
+      $('#info-buffers').textContent = c;
     };
     $('#reconnect').onclick = function(){
       irc.stream.reconnect();

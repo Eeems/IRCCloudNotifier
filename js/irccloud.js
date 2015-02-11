@@ -129,6 +129,106 @@
         xhr.send(options.data);
         return self;
       },
+      Connection: function(o){
+        var con = this;
+        extend(con,{
+          id: o.cid,
+          num_buffers: o.num_buffers,
+          order: o.order,
+          name: o.name,
+          nick: o.nick,
+          realname: o.realname,
+          away: o.away,
+          disconnected: o.disconnected,
+          hostname: o.hostname,
+          fail_info: o.fail_info,
+          ident_prefix: o.ident_prefix,
+          ircserver: o.ircserver,
+          port: o.port,
+          ssl: o.ssl,
+          join_commands: o.join_commands,
+          lag: o.lag,
+          status: o.status,
+          user: o.user,
+          userhost: o.userhost,
+          usermask: o.usermask,
+          buffer: function(bid){
+            var b;
+            con.buffers.forEach(function(buffer){
+              if(buffer.id === bid){
+                 b = buffer;
+              }
+            });
+            return b;
+          },
+          'delete': function(){
+            self.connections.forEach(function(c,i){
+              if(c.id === con.id){
+                self.connections.splice(i,1);
+              }
+            });
+            con.buffers.forEach(function(b){
+              b.delete();
+            });
+            for(var i in con){
+              try{
+                delete con[i];
+              }catch(e){}
+            }
+            delete con;
+          },
+          buffers: [],
+          Buffer: function(o){
+            var buf = this;
+            extend(buf,{
+              id: o.bid,
+              buffer_type: o.buffer_type,
+              cid: o.cid,
+              created: o.created,
+              deferred: o.deferred,
+              last_seen_eid: o.last_seen_eid,
+              min_eid: o.min_eid,
+              name: o.name,
+              timeout: o.timeout,
+              'delete': function(){
+                con.buffers.forEach(function(b,i){
+                  if(b.id === buf.id){
+                    con.buffers.splice(i,1);
+                  }
+                });
+                for(var i in buf){
+                  try{
+                    delete buf[i];
+                  }catch(e){}
+                }
+                delete buf;
+              }
+            });
+            Object.defineProperty(buf,'bid',{
+              get: function(){
+                return buf.id;
+              }
+            });
+            return buf;
+          }
+        });
+        Object.defineProperty(con,'cid',{
+          get: function(){
+            return con.id;
+          }
+        });
+        return con;
+      },
+      connection: function(cid){
+        var c;
+        self.connections.forEach(function(connection){
+          if(connection.id === cid){
+            c = connection;
+          }
+        });
+        return c;
+      },
+      connections: [],
       _highlights: [],
       _connections: [],
       _get_connection_id: function(cid){
@@ -394,8 +494,12 @@
               });
             },
             makebuffer: function(d){
-              if(self._get_connection_id(d.cid)){
-                self._get_connection(d.cid).buffers[d.bid] = d;
+              var c = self.connection(d.cid)
+              if(c){
+                if(c.buffer(d.bid)){
+                  c.buffer(d.bid).delete();
+                }
+                c.buffers.push(new c.Buffer(d));
               }
               if(self.last_seen_eid<d.last_seen_eid){
                 self.last_seen_eid = d.last_seen_eid;
@@ -413,20 +517,16 @@
               }
             },
             makeserver: function(d){
-              if(!self._get_connection_id(d.cid)){
-                d.buffers = [];
-                self._connections.push(d);
-              }else{
-                d.buffers = self._get_connection(d.cid).buffers;
-                self._connections[self._get_connection_id(d.cid)] = d;
-              }
+              try{
+                self.connection(d.cid).delete();
+              }catch(e){}
+              self.connections.push(new self.Connection(d));
               if(self.onserver){
                 self.onserver();
               }
             },
             server_details_changed: function(d){
-              d.buffers = [];
-              self._connections[d.cid] = d;
+              // Todo
               if(self.onserver){
                 self.onserver();
               }
