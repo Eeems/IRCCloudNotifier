@@ -1,133 +1,133 @@
 html, body{
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  font-size: 1rem;
-  font: 400 95%/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	font-size: 1rem;
+	font: 400 95%/1 "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 body>section{
-  margin: 0;
-  padding: 0;
-  height:100%;
-  overflow: hidden;
-  display: none;
+	margin: 0;
+	padding: 0;
+	height:100%;
+	overflow: hidden;
+	display: none;
 }
 body>section>form{
-  background-color: #0b2e60;
-  color: #6ba2f7;
+	background-color: #0b2e60;
+	color: #6ba2f7;
 }
 body>section:target{
-  display: flex;
-  flex-direction: column;
+	display: flex;
+	flex-direction: column;
 }
 body>section>div, body>section>form>div{
-  padding: 5px;
+	padding: 5px;
 }
 body>section>div{
-  background-color: #E2EDFF;
-  border-bottom-color: #CBDCF2;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
+	background-color: #E2EDFF;
+	border-bottom-color: #CBDCF2;
+	border-bottom-style: solid;
+	border-bottom-width: 2px;
 }
 body>section>div:first-child{
-  background-color: #D9E7FF;
+	background-color: #D9E7FF;
 }
 body>section>div:last-child{
-  height: 100%;
-  overflow: auto;
-  padding: 0;
-  background-color: #FFFFFF;
+	height: 100%;
+	overflow: auto;
+	padding: 0;
+	background-color: #FFFFFF;
 }
 body>section>div.intro{
-  background-color: #4480FA;
-  color: #9cc7ff;
-  padding: 5px;
-  font-family: 'Lato', sans-serif;
-  font-size: 30px;
+	background-color: #4480FA;
+	color: #9cc7ff;
+	padding: 5px;
+	font-family: 'Lato', sans-serif;
+	font-size: 30px;
 }
 body>section>form input{
-  font-size: 14px;
-  width: 170px;
-  border-color: #000;
-  background-color: #113787;
-  padding: 7px 5px;
-  margin: 0 5px 8px 0;
-  color: #fff;
+	font-size: 14px;
+	width: 170px;
+	border-color: #000;
+	background-color: #113787;
+	padding: 7px 5px;
+	margin: 0 5px 8px 0;
+	color: #fff;
 }
 div.notification{
-  flex-direction: column;
-  background-color: #C0DBFF;
-  padding: 5px;
+	flex-direction: column;
+	background-color: #C0DBFF;
+	padding: 5px;
 }
 input, button, code, p{
-  font-size: inherit;
+	font-size: inherit;
 }
 div.notification,.flex{
-  display: flex;
+	display: flex;
 }
 .marginL>*{
-  margin-left: 5px;
+	margin-left: 5px;
 }
 #user{
-  display: table;
-  padding: 0;
-  color: #222;
-  font-weight: 700;
+	display: table;
+	padding: 0;
+	color: #222;
+	font-weight: 700;
 }
 #user>div{
-  display: table-cell;
+	display: table-cell;
 }
 #user>div>button{
-  width: 100%;
+	width: 100%;
 }
 button{
-  display: inline-block;
-  width: auto;
-  overflow: visible;
-  padding: 2px;
-  border: 0px none;
-  background: transparent none repeat scroll 0px 0px;
-  margin: 0px;
-  cursor: pointer;
-  outline: 0px none;
+	display: inline-block;
+	width: auto;
+	overflow: visible;
+	padding: 2px;
+	border: 0px none;
+	background: transparent none repeat scroll 0px 0px;
+	margin: 0px;
+	cursor: pointer;
+	outline: 0px none;
 }
 button>span{
-  position: relative;
-  display: block;
-  padding: 0.4em 1em;
-  border-width: 1px;
-  border-style: solid;
-  -moz-border-top-colors: none;
-  -moz-border-right-colors: none;
-  -moz-border-bottom-colors: none;
-  -moz-border-left-colors: none;
-  border-image: none;
-  border-color: #DDD #AAA #AAA #DDD;
-  border-radius: 3px;
-  box-shadow: 0px 0px 1px #EEE;
-  background-color: #F5F5F5;
-  background-image: linear-gradient(to bottom, #F9F9F9, #F5F5F5);
-  background-clip: padding-box;
-  line-height: 1.4;
-  text-align: center;
-  font-size: 12px;
-  color: #222;
-  vertical-align: middle;
+	position: relative;
+	display: block;
+	padding: 0.4em 1em;
+	border-width: 1px;
+	border-style: solid;
+	-moz-border-top-colors: none;
+	-moz-border-right-colors: none;
+	-moz-border-bottom-colors: none;
+	-moz-border-left-colors: none;
+	border-image: none;
+	border-color: #DDD #AAA #AAA #DDD;
+	border-radius: 3px;
+	box-shadow: 0px 0px 1px #EEE;
+	background-color: #F5F5F5;
+	background-image: linear-gradient(to bottom, #F9F9F9, #F5F5F5);
+	background-clip: padding-box;
+	line-height: 1.4;
+	text-align: center;
+	font-size: 12px;
+	color: #222;
+	vertical-align: middle;
 }
 button.delete>span{
-  color: #FFF;
-  border-color: #D20004;
-  background-color: #FF1F1A;
-  background-image: linear-gradient(to bottom, #FB6669, #FF1F1A);
+	color: #FFF;
+	border-color: #D20004;
+	background-color: #FF1F1A;
+	background-image: linear-gradient(to bottom, #FB6669, #FF1F1A);
 }
 button.submit>span{
-  background-color: #1b3295;
-  background-image: linear-gradient(to bottom, #2746c7, #1b3295);
-  box-shadow: none;
-  font-size: 14px;
-  padding: 7px 10px;
-  border-color: #000;
-  color: #9CC7FF;
+	background-color: #1b3295;
+	background-image: linear-gradient(to bottom, #2746c7, #1b3295);
+	box-shadow: none;
+	font-size: 14px;
+	padding: 7px 10px;
+	border-color: #000;
+	color: #9CC7FF;
 }

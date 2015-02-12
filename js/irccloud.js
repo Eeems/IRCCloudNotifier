@@ -229,10 +229,19 @@
 						var b;
 						con.buffers.forEach(function(buffer){
 							if(buffer.id === bid){
-								 b = buffer;
+								b = buffer;
 							}
 						});
 						return b;
+					},
+					channel: function(name){
+						var c;
+						con.channels.forEach(function(channel){
+							if(channel.name === name){
+								c = channel;
+							}
+						});
+						return c;
 					},
 					'delete': function(){
 						self.connections.forEach(function(c,i){
@@ -251,6 +260,7 @@
 						con = undefined;
 					},
 					buffers: [],
+					channels: [],
 					Buffer: function(o){
 						var buf = this;
 						extend(buf,{
@@ -283,7 +293,33 @@
 							}
 						});
 						return buf;
-					}
+					},
+					Channel: function(o){
+						var chan = this;
+						extend(chan,{
+							name: o.chan,
+							buffer: con.buffer(o.bid),
+							'delete': function(){
+								con.channels.forEach(function(c,i){
+									if(c.name == chan.name){
+										con.channels.splice(i,1);
+									}
+								});
+								for(var i in chan){
+									try{
+										delete chan[i];
+									}catch(e){}
+								}
+								chan = undefined;
+							}
+						});
+						Object.defineProperty(chan,'chan',{
+							get: function(){
+								return chan.name;
+							}
+						});
+						return chan;
+					},
 				});
 				Object.defineProperty(con,'cid',{
 					get: function(){
@@ -410,7 +446,7 @@
 										d.push(JSON.parse(v));
 									});
 									for(i in d){
-									 stream.handle(d[i]);
+										stream.handle(d[i]);
 									}
 								}
 							});
@@ -455,8 +491,8 @@
 							},10);
 							if(stream.xhr){
 								try{
-									 stream.xhr.abort();
-								 }catch(e){}
+									stream.xhr.abort();
+								}catch(e){}
 							}
 							stream.xhr = new self.Request({
 								url: self.ENDPOINT+d.url,
@@ -518,10 +554,35 @@
 								self.onserver();
 							}
 						},
+						connection_deleted: function(d){
+							try{
+								self.connection(d.cid).delete();
+							}catch(e){}
+							if(self.onserver){
+								self.onserver();
+							}
+						},
+						connection_lag: function(d){
+							try{
+								self.connection(d.cid).lag = d.lag;
+							}catch(e){}
+						},
 						server_details_changed: function(d){
 							// Todo
 							if(self.onserver){
 								self.onserver();
+							}
+						},
+						channel_init: function(d){
+							try{
+								var c = self.connection(d.cid);
+								try{
+									c.channel(d.chan).delete();
+								}catch(e){}
+								c.channels.push(new c.Channel(d));
+							}catch(e){}
+							if(self.onchannel){
+								self.onchannel();
 							}
 						},
 						buffer_msg: function(d){
@@ -599,11 +660,11 @@
 			},
 			rpc: (function(){
 				var methods = {
-						 get:[
-							 'plans',
-							 'backlog',
-							 'stream'
-						 ],
+						get:[
+							'plans',
+							'backlog',
+							'stream'
+						],
 						post:[
 							'request-invite',
 							'auth-formtoken',
