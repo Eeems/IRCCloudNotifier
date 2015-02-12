@@ -509,8 +509,12 @@
               }
             },
             delete_buffer: function(d){
-              if(self._get_connection_id(d.cid)){
-                self._get_connection(d.cid).buffers.splice(d.bid,1);
+              var c = self.connection(d.cid);
+              if(c){
+                var b = c.buffer(d.bid);
+                if(b){
+                  b.delete();
+                }
               }
               if(self.onbuffer){
                 self.onbuffer();
