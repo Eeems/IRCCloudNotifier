@@ -261,65 +261,6 @@
 					},
 					buffers: [],
 					channels: [],
-					Buffer: function(o){
-						var buf = this;
-						extend(buf,{
-							id: o.bid,
-							buffer_type: o.buffer_type,
-							cid: o.cid,
-							created: o.created,
-							deferred: o.deferred,
-							last_seen_eid: o.last_seen_eid,
-							min_eid: o.min_eid,
-							name: o.name,
-							timeout: o.timeout,
-							'delete': function(){
-								con.buffers.forEach(function(b,i){
-									if(b.id === buf.id){
-										con.buffers.splice(i,1);
-									}
-								});
-								for(var i in buf){
-									try{
-										delete buf[i];
-									}catch(e){}
-								}
-								buf = undefined;
-							}
-						});
-						Object.defineProperty(buf,'bid',{
-							get: function(){
-								return buf.id;
-							}
-						});
-						return buf;
-					},
-					Channel: function(o){
-						var chan = this;
-						extend(chan,{
-							name: o.chan,
-							buffer: con.buffer(o.bid),
-							'delete': function(){
-								con.channels.forEach(function(c,i){
-									if(c.name == chan.name){
-										con.channels.splice(i,1);
-									}
-								});
-								for(var i in chan){
-									try{
-										delete chan[i];
-									}catch(e){}
-								}
-								chan = undefined;
-							}
-						});
-						Object.defineProperty(chan,'chan',{
-							get: function(){
-								return chan.name;
-							}
-						});
-						return chan;
-					},
 				});
 				Object.defineProperty(con,'cid',{
 					get: function(){
@@ -327,6 +268,95 @@
 					}
 				});
 				return con;
+			},
+			Buffer: function(o){
+				var buf = this;
+				extend(buf,{
+					id: o.bid,
+					type: o.buffer_type,
+					created: o.created,
+					deferred: o.deferred,
+					last_seen_eid: o.last_seen_eid,
+					min_eid: o.min_eid,
+					name: o.name,
+					timeout: o.timeout,
+					'delete': function(){
+						buf.connection.buffers.forEach(function(b,i){
+							if(b.id === buf.id){
+								buf.connection.buffers.splice(i,1);
+							}
+						});
+						for(var i in buf){
+							try{
+								delete buf[i];
+							}catch(e){}
+						}
+						buf = undefined;
+					}
+				});
+				Object.defineProperty(buf,'connection',{
+					get: function(){
+						return self.connection(o.cid);
+					}
+				});
+				Object.defineProperty(buf,'channel',{
+					get: function(){
+						if(buf.type == 'channel'){
+							for(var i in buf.connection.channels){
+								if(buf.connection.channels[i].buffer === buf){
+									return buf.connection.channels[i];
+								}
+							}
+						}
+					}
+				});
+				Object.defineProperty(buf,'bid',{
+					get: function(){
+						return buf.id;
+					}
+				});
+				return buf;
+			},
+			Channel: function(o){
+				var chan = this;
+				extend(chan,{
+					name: o.chan,
+					members: o.members,
+					mode: o.mode,
+					topic: o.topic,
+					timestamp: o.timestamp,
+					type: o.channel_type,
+					url: o.url,
+					'delete': function(){
+						chan.connection.channels.forEach(function(c,i){
+							if(c.name == chan.name){
+								chan.connection.channels.splice(i,1);
+							}
+						});
+						for(var i in chan){
+							try{
+								delete chan[i];
+							}catch(e){}
+						}
+						chan = undefined;
+					}
+				});
+				Object.defineProperty(chan,'chan',{
+					get: function(){
+						return chan.name;
+					}
+				});
+				Object.defineProperty(chan,'buffer',{
+					get: function(){
+						return chan.connection.buffer(o.bid);
+					}
+				});
+				Object.defineProperty(chan,'connection',{
+					get: function(){
+						return self.connection(o.cid);
+					}
+				});
+				return chan;
 			},
 			connection: function(cid){
 				var c;
@@ -524,7 +554,7 @@
 								if(c.buffer(d.bid)){
 									c.buffer(d.bid).delete();
 								}
-								c.buffers.push(new c.Buffer(d));
+								c.buffers.push(new self.Buffer(d));
 							}
 							if(self.last_seen_eid<d.last_seen_eid){
 								self.last_seen_eid = d.last_seen_eid;
@@ -579,7 +609,7 @@
 								try{
 									c.channel(d.chan).delete();
 								}catch(e){}
-								c.channels.push(new c.Channel(d));
+								c.channels.push(new self.Channel(d));
 							}catch(e){}
 							if(self.onchannel){
 								self.onchannel();
