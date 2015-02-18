@@ -458,7 +458,6 @@
 							var data = {};
 							if(stream.streamid){
 								data.stream_id = stream.streamid;
-								data.streamid = stream.streamid;
 							}
 							data.since_id = stream.since_id;
 							stream.xhr = new self.Request({
