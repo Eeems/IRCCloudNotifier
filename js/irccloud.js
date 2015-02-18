@@ -422,6 +422,7 @@
 				var stream = this;
 				extend(stream,{
 					_msg: '',
+					since_id: -1,
 					reconnect: function(){
 						if(self.options.events){
 						console.info('Stream Reconnect');
@@ -456,11 +457,10 @@
 						if(navigator.onLine){
 							var data = {};
 							if(stream.streamid){
+								data.stream_id = stream.streamid;
 								data.streamid = stream.streamid;
 							}
-							if(stream.since_id){
-								data.since_id = stream.since_id;
-							}
+							data.since_id = stream.since_id;
 							stream.xhr = new self.Request({
 								url: self.ENDPOINT+'/chat/stream?'+encode(data),
 								headers: {
@@ -650,7 +650,9 @@
 							console.log(d.type);
 						}
 						stream.last_recieved = +new Date;
-						stream.since_id = d.eid;
+						if(d.eid>stream.since_id){
+							stream.since_id = d.eid;
+						}
 						if(stream.handles[d.type]){
 							stream.handles[d.type](d);
 						}
