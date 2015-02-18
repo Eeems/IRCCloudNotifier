@@ -119,8 +119,8 @@
 				};
 		extend(self,{
 			options: {
-				debug: true,
-				events: true,
+				debug: false,
+				events: false,
 				backlog: false
 			},
 			last_seen_eid: 0,
@@ -433,7 +433,7 @@
 								a = e.target.response.split("\n");
 								a.forEach(function(d,i){
 									if(d==''){
-										delete a[i];
+										a.splice(i,1);
 									}else{
 										a[i] = JSON.parse(d);
 									}
