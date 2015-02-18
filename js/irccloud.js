@@ -119,8 +119,8 @@
 				};
 		extend(self,{
 			options: {
-				debug: false,
-				events: false,
+				debug: true,
+				events: true,
 				backlog: false
 			},
 			last_seen_eid: 0,
@@ -419,14 +419,41 @@
 				return self;
 			},
 			Stream: function(){
-				var stream = this;
+				var stream = this,
+					handle_raw = function(e){
+						if(e.target.response){
+							if(self.options.events){
+								console.log('handle_raw');
+							}
+							var a = [],
+								t = '';
+							if(e.target.responseType == 'json'){
+								a = e.target.response;
+							}else{
+								a = e.target.response.split("\n");
+								a.forEach(function(d,i){
+									if(d==''){
+										delete a[i];
+									}else{
+										a[i] = JSON.parse(d);
+									}
+								});
+							}
+							a.forEach(function(d,i){
+								try{
+									stream.handle(d);
+									delete a[i];
+								}catch(e){}
+							});
+						}
+					};
 				extend(stream,{
 					_msg: '',
 					since_id: -1,
 					reconnect: function(){
 						if(self.options.events){
-						console.info('Stream Reconnect');
-					}
+							console.info('Stream Reconnect');
+						}
 						if(self.ondisconnect){
 							self.ondisconnect();
 						}
@@ -469,15 +496,8 @@
 								responseType: 'moz-chunked-text',
 								onerror: stream.reconnect,
 								ontimeout: stream.reconnect,
-								onprogress: function(e){
-									var d = [],i;
-									e.target.response.trim().split("\n").forEach(function(v,i,a){
-										d.push(JSON.parse(v));
-									});
-									for(i in d){
-										stream.handle(d[i]);
-									}
-								}
+								onprogress: handle_raw,
+								onload: handle_raw
 							});
 						}else{
 							// handle being offline
@@ -518,33 +538,14 @@
 									stream.reconnect();
 								}
 							},10);
-							if(stream.xhr){
-								try{
-									stream.xhr.abort();
-								}catch(e){}
-							}
-							stream.xhr = new self.Request({
+							new self.Request({
 								url: self.ENDPOINT+d.url,
 								headers: {
 									'x-auth-formtoken': self.token,
 									'Cookie': 'session='+self.session
 								},
-								responseType: 'moz-chunked-text',
-								onprogress: function(e){
-									var d = [],i;
-									stream._msg += e.target.response;
-								},
-								onload: function(){
-									try{
-										var d = JSON.parse(stream._msg),i;
-										stream._msg = '';
-										for(i in d){
-											stream.handle(d[i]);
-										}
-									}catch(e){}
-								},
-								onerror: stream.reconnect,
-								ontimeout: stream.reconnect
+								responseType: 'json',
+								onload: handle_raw
 							});
 						},
 						makebuffer: function(d){
@@ -645,15 +646,20 @@
 						}
 					},
 					handle: function(d){
-						if(self.options.debug){
-							console.log(d.type);
+						if(typeof d == 'string'){
+							d = JSON.parse(d);
 						}
-						stream.last_recieved = +new Date;
-						if(d.eid>stream.since_id){
-							stream.since_id = d.eid;
-						}
-						if(stream.handles[d.type]){
-							stream.handles[d.type](d);
+						if(d.type){
+							if(self.options.debug){
+								console.log(d.type);
+							}
+							stream.last_recieved = +new Date;
+							if(d.eid>stream.since_id){
+								stream.since_id = d.eid;
+							}
+							if(stream.handles[d.type]){
+								stream.handles[d.type](d);
+							}
 						}
 					}
 				});
