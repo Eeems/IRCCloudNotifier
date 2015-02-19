@@ -432,7 +432,7 @@
 							}else{
 								a = e.target.response.split("\n");
 								a.forEach(function(d,i){
-									if(d==''){
+									if(d===''){
 										a.splice(i,1);
 									}else{
 										a[i] = JSON.parse(d);
