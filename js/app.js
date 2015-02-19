@@ -124,8 +124,7 @@ window.addEventListener('DOMContentLoaded', function() {
 		$('#logout').onclick = function(){
 			localStorage.removeItem('session');
 			location.hash = 'tab-login';
-			irc.stream.stop();
-			irc.user = {};
+			irc.logout();
 			var req = navigator.mozAlarms.getAll();
 			req.onsuccess = function(){
 				this.result.forEach(function(alarm){

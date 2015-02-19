@@ -27,7 +27,9 @@
 			if(self.ononline){
 				self.ononline();
 			}
-			self.stream.init();
+			if(self.stream){
+				self.stream.init();
+			}
 		}
 	},false);
 	window.addEventListener('offline',function(){
@@ -36,10 +38,8 @@
 			if(self.options.events){
 				console.info('Offline');
 			}
-			if(self.stream.xhr){
-				try{
-					self.stream.xhr.abort();
-				}catch(e){}
+			if(self.stream){
+				self.stream.stop();
 			}
 			if(self.ondisconnect){
 				self.ondisconnect();
@@ -494,7 +494,11 @@
 									'Cookie': 'session='+self.session
 								},
 								responseType: 'moz-chunked-text',
-								onerror: stream.reconnect,
+								onerror: function(){
+									if(self.ondisconnect){
+										self.ondisconnect();
+									}
+								},
 								ontimeout: stream.reconnect,
 								onprogress: handle_raw,
 								onload: handle_raw
@@ -505,6 +509,9 @@
 					},
 					handles: {
 						header: function(d){
+							if(self.onconnect){
+								self.onconnect();
+							}
 							stream.streamid = d.streamid;
 							stream.idle_interval = d.idle_interval;
 							if(self.options.events){
@@ -527,9 +534,6 @@
 							}
 						},
 						oob_include: function(d){
-							if(self.onconnect){
-								self.onconnect();
-							}
 							stream._interval = setInterval(function(){
 								if((stream.idle_interval+stream.last_recieved)<+new Date){
 									if(self.options.events){
@@ -661,6 +665,15 @@
 								stream.handles[d.type](d);
 							}
 						}
+					},
+					'delete': function(){
+						stream.stop();
+						for(var i in stream){
+							try{
+								delete stream[i];
+							}catch(e){}
+						}
+						stream = undefined;
 					}
 				});
 				stream.init();
@@ -694,6 +707,15 @@
 						callback(d);
 					},onerror);
 				});
+			},
+			logout: function(){
+				if(self.stream){
+					self.stream.delete();
+					delete self.stream;
+					delete self.session;
+					delete self.user;
+					document.cookie = '';
+				}
 			},
 			rpc: (function(){
 				var methods = {
