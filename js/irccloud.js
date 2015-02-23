@@ -640,11 +640,20 @@
 							}
 						},
 						heartbeat_echo: function(d){
-							for(var i in d.seenEids){
-								for(var ii in d.seenEids[i]){
+							var i,ii,fn = function(h){
+								if(h.cid==i && h.bid==ii && h.eid<=d.seenEids[i][ii]){
+									if(h.onclear){
+										h.onclear();
+									}
+									h.clear();
+								}
+							};
+							for(i in d.seenEids){
+								for(ii in d.seenEids[i]){
 									if(d.seenEids[i][ii]>self.last_seen_eid){
 										self.last_seen_eid = d.seenEids[i][ii];
 									}
+									self.highlights.forEach(fn);
 								}
 							}
 						}

@@ -63,6 +63,7 @@ window.addEventListener('DOMContentLoaded', function() {
 				h.clear();
 				d.remove();
 			};
+			h.onclear = d.onclick;
 			d.id = 'eid_'+h.eid;
 			d.className = 'notification';
 			st.textContent = h.title;
