@@ -10,23 +10,23 @@ window.addEventListener('DOMContentLoaded', function() {
 		app.checkForUpdate();
 	};
 	navigator.mozL10n.once(function(){
-		window.irc = new IRCCloud();
-		var saveSession = function(){
-					localStorage.setItem('session',JSON.stringify({
-						session: irc.session,
-						user: irc.user
-					}));
-				},
-				updateUser = function(){
-					if(irc.user){
-						if(irc.user.name){
-							$('#user-name').textContent = irc.user.name;
-						}
-						if(irc.user.email){
-							$('#user-email').textContent = irc.user.email;
-						}
+		var irc = new IRCCloud(),
+			saveSession = function(){
+				localStorage.setItem('session',JSON.stringify({
+					session: irc.session,
+					user: irc.user
+				}));
+			},
+			updateUser = function(){
+				if(irc.user){
+					if(irc.user.name){
+						$('#user-name').textContent = irc.user.name;
 					}
-				};
+					if(irc.user.email){
+						$('#user-email').textContent = irc.user.email;
+					}
+				}
+			};
 		if(localStorage.getItem('session')!==null){
 			var s = JSON.parse(localStorage.getItem('session'));
 			irc.user = s.user;
@@ -154,5 +154,6 @@ window.addEventListener('DOMContentLoaded', function() {
 			}
 			irc.onclick.call(notification);
 		});
+		window.irc = irc;
 	});
 });

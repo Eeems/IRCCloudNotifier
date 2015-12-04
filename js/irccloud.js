@@ -425,8 +425,7 @@
 							if(self.options.events){
 								console.log('handle_raw');
 							}
-							var a = [],
-								t = '';
+							var a = [];
 							if(e.target.responseType == 'json'){
 								a = e.target.response;
 							}else{
